@@ -18,11 +18,9 @@ function App() {
   const [showAddModal, setShowAddModal] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Fetch products. If a search query exists, call the search endpoint.
   const fetchProducts = async (search = '', category = '') => {
     setLoading(true);
     try {
-      // Always fetch the full product list to compute the available categories
       const allResp = await axios.get('/api/products');
       let allProds = allResp.data;
       if (!Array.isArray(allProds)) {
@@ -32,12 +30,10 @@ function App() {
       const cats = Array.from(new Set(allProds.map((p) => p.category).filter(Boolean)));
       setCategories(cats);
 
-      // Then fetch the (possibly filtered by name) product list for display
       let response;
       if (search) {
         response = await axios.get('/api/products', { params: { name: search } });
       } else {
-        // reuse the already fetched full list
         response = allResp;
       }
 
@@ -83,14 +79,13 @@ function App() {
 
   const handleCloseHistory = () => setSelectedProductForHistory(null);
 
-  // Deletion flow with confirm modal and undo toast
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [productPendingDelete, setProductPendingDelete] = useState(null);
-  // track pending timeouts so we can cancel on undo
+
   const pendingTimeoutRef = useRef(new Map());
 
   const handleDeleteClick = (product) => {
-    // open modal with product object
+
     setProductPendingDelete(product);
     setConfirmOpen(true);
   };
@@ -106,7 +101,7 @@ function App() {
     } catch (err) {
       console.error('Final delete failed', err);
       toast.error('Failed to delete product on server');
-      // Optionally re-fetch if desired
+      
       fetchProducts(searchQuery, selectedCategory);
     } finally {
       // cleanup timeout tracking
@@ -188,7 +183,15 @@ function App() {
       await fetchProducts();
     } catch (err) {
       console.error('Import failed', err);
-      toast.error('Import failed');
+      // If the frontend is calling its own origin for /api (likely VITE_API_BASE not set), show a helpful message
+      const baseURL = axios.defaults.baseURL;
+      if (baseURL === '/' || !baseURL) {
+        toast.error('Import failed: frontend is calling its own origin. Set VITE_API_BASE to your backend URL in Vercel and redeploy.');
+      } else if (err.response) {
+        toast.error(`Import failed — ${err.response.status}: ${JSON.stringify(err.response.data)}`);
+      } else {
+        toast.error('Import failed');
+      }
     } finally {
       e.target.value = null;
     }
