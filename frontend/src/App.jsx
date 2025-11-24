@@ -101,7 +101,7 @@ function App() {
     } catch (err) {
       console.error('Final delete failed', err);
       toast.error('Failed to delete product on server');
-      
+
       fetchProducts(searchQuery, selectedCategory);
     } finally {
       // cleanup timeout tracking
@@ -114,11 +114,9 @@ function App() {
     const prod = productPendingDelete;
     setConfirmOpen(false);
 
-    // Optimistically remove from UI
     setProducts((prev) => prev.filter((p) => p.id !== prod.id));
 
-    // Show toast with Undo option. If user clicks Undo before timeout, restore product and cancel deletion.
-    const toastId = toast.success(
+      const toastId = toast.success(
       ({ closeToast }) => (
         <div className="flex items-center justify-between">
           <span>Product deleted</span>
@@ -142,7 +140,7 @@ function App() {
       { autoClose: 5000 }
     );
 
-    // Schedule actual delete after timeout (matching toast autoClose)
+    //Time within which user can undo delete
     const timeoutId = setTimeout(() => {
       finalizeDelete(prod.id);
       toast.dismiss(toastId);
@@ -168,7 +166,7 @@ function App() {
       const res = await axios.post('/api/products/import', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      // Show detailed result if provided by backend
+
       if (res.data && (res.data.added !== undefined || res.data.skipped !== undefined)) {
         const added = res.data.added || 0;
         const skipped = res.data.skipped || 0;
@@ -183,11 +181,7 @@ function App() {
       await fetchProducts();
     } catch (err) {
       console.error('Import failed', err);
-      // If the frontend is calling its own origin for /api (likely VITE_API_BASE not set), show a helpful message
-      const baseURL = axios.defaults.baseURL;
-      if (baseURL === '/' || !baseURL) {
-        toast.error('Import failed: frontend is calling its own origin. Set VITE_API_BASE to your backend URL in Vercel and redeploy.');
-      } else if (err.response) {
+      if (err.response) {
         toast.error(`Import failed — ${err.response.status}: ${JSON.stringify(err.response.data)}`);
       } else {
         toast.error('Import failed');
