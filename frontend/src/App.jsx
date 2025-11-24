@@ -263,7 +263,7 @@ function App() {
 
         <div className="bg-white p-4 rounded shadow">
           {loading ? (
-            <p>Loading...</p>
+            <p className='text-center'>Loading...</p>
           ) : (
             <ProductTable
               products={products}

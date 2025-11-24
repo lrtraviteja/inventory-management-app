@@ -29,7 +29,7 @@ export default function Sidebar() {
         </ul>
       </nav>
       <div className="px-6 py-4 border-t border-gray-700 text-sm text-gray-400">
-        &copy; My Inventory Manager, 2025
+        &copy; Inventory Manager, 2025
       </div>
     </aside>
   );
